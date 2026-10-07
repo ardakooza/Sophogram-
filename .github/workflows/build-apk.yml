@@ -37,15 +37,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
-      - name: Lisanslari kabul et
-        run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-
+      # NOT: android-actions/setup-android@v3 kullanilmiyor. Ic sdkmanager'da
+      # kaldirilmis 'tools' paketini arayip hata veriyor ("Failed to find package
+      # 'tools'"). Runner'da ANDROID_HOME ve cmdline-tools hazir gelir; elle kuruyoruz.
       - name: SDK / NDK / CMake kur
         run: |
-          sdkmanager --install \
+          set -euo pipefail
+          SDKMANAGER="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER" || SDKMANAGER=$(command -v sdkmanager)
+          echo "sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" --install \
             "platform-tools" \
             "platforms;android-36" \
             "build-tools;36.0.0" \
