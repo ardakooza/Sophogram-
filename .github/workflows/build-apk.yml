@@ -125,7 +125,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sophogram-apk-${{ inputs.abi }}
+          name: sophon-apk-${{ inputs.abi }}
           path: |
             TMessagesProj_App/build/outputs/apk/**/*.apk
           if-no-files-found: error
