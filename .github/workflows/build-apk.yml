@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       variant:
-        description: 'Gradle task (assembleDebug / assembleRelease)'
+        description: 'Gradle task — TAM YOL onerilir. Tum moduller (Huawei/HockeyApp/Standalone) agconnect-services.json olmadan derlenemez.'
         required: false
-        default: 'assembleDebug'
+        default: ':TMessagesProj_App:assembleDebug'
       abi:
         description: 'ABI — arm64-v8a (gercek cihaz) veya all (4 ABI, yavas)'
         required: false
@@ -88,26 +88,29 @@ jobs:
               print("BuildVars.java guncellendi")
           PY
 
-      - name: ABI filtresi ekle
+      # ABI filtresi app modulunde (TMessagesProj_App/build.gradle) ZATEN tanimli:
+      # productFlavors icinde her flavor'da 4 ABI listeleniyor. Yeni ndk{} blogu
+      # eklemek degil, mevcut listeyi daraltmak gerekiyor. (TMessagesProj bir
+      # library modul oldugu icin oraya ndk{} enjekte etmek hata veriyor.)
+      - name: ABI listesini daralt
         run: |
           set -euo pipefail
           if [ "${{ inputs.abi }}" = "all" ]; then
-            echo "ABI filtresi yok — 4 ABI derlenecek, yavas olabilir"
+            echo "ABI listesi degistirilmedi — 4 ABI derlenecek, yavas olabilir"
             exit 0
           fi
           python3 - <<'PY'
-          import pathlib
-          p = pathlib.Path("TMessagesProj/build.gradle")
+          import pathlib, re
+          p = pathlib.Path("TMessagesProj_App/build.gradle")
           s = p.read_text(encoding="utf-8")
-          if "abiFilters" in s:
-              print("abiFilters zaten tanimli, dokunulmadi")
+          pattern = r'abiFilters\s+"armeabi-v7a"\s*,\s*"arm64-v8a"\s*,\s*"x86"\s*,\s*"x86_64"'
+          found = len(re.findall(pattern, s))
+          if found == 0:
+              print("::warning::abiFilters deseni bulunamadi, build.gradle upstream degisti mi?")
           else:
-              anchor = 'ndkVersion "27.2.12479018"'
-              if anchor not in s:
-                  raise SystemExit("::error::ndkVersion saturasi bulunamadi, build.gradle degisti mi?")
-              s = s.replace(anchor, anchor + '\n    ndk {\n        abiFilters "${{ inputs.abi }}"\n    }', 1)
-              p.write_text(s, encoding="utf-8")
-              print("abiFilters eklendi: ${{ inputs.abi }}")
+              s2 = re.sub(pattern, 'abiFilters "${{ inputs.abi }}"', s)
+              p.write_text(s2, encoding="utf-8")
+              print(f"{found} abiFilters satiri daraltildi -> ${{ inputs.abi }}")
           PY
 
       - name: Derle
@@ -118,12 +121,12 @@ jobs:
       - name: APK ozeti
         if: always()
         run: |
-          find TMessagesProj/build/outputs/apk -name '*.apk' -exec ls -lh {} \; 2>/dev/null || echo "APK bulunamadi"
+          find TMessagesProj_App/build/outputs/apk -name '*.apk' -exec ls -lh {} \; 2>/dev/null || echo "APK bulunamadi"
 
       - uses: actions/upload-artifact@v4
         with:
           name: sophogram-apk-${{ inputs.abi }}
           path: |
-            TMessagesProj/build/outputs/apk/**/*.apk
+            TMessagesProj_App/build/outputs/apk/**/*.apk
           if-no-files-found: error
           retention-days: 14
