@@ -1,21 +1,16 @@
-name: Sophogram Build
+name: Sophon Build
 
 on:
   workflow_dispatch:
     inputs:
       variant:
-        description: 'Gradle task — TAM YOL onerilir. Tum moduller (Huawei/HockeyApp/Standalone) agconnect-services.json olmadan derlenemez.'
+        description: 'Gradle task — release, .beta paket ekine ve "Telegram Beta" label''ina yol acmaz'
         required: false
-        default: ':TMessagesProj_App:assembleDebug'
+        default: ':TMessagesProj_App:assembleAfatRelease'
       abi:
         description: 'ABI — arm64-v8a (gercek cihaz) veya all (4 ABI, yavas)'
         required: false
         default: 'arm64-v8a'
-      inject_api:
-        description: 'BuildVars.java icine TG_API_ID / TG_API_HASH gom'
-        type: boolean
-        required: false
-        default: true
 
 permissions:
   contents: read
@@ -62,31 +57,20 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
-      - name: API kimliklerini yaz
-        if: ${{ inputs.inject_api }}
-        env:
-          TG_API_ID: ${{ secrets.TG_API_ID }}
-          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+# API KIMLIGI BILINCLI OLARAK DEGISTIRILMIYOR.
+      # BuildVars.java'daki resmi degerler (APP_ID = 4 ve resmi APP_HASH) korunur.
+      # Sebep: Telegram auth key'leri sunucuda api_id ile eslesir. Fork'a kendi
+      # api_id'ini yazdiginda mevcut oturum gecersizlesir ve uygulama kullaniciyi
+      # oturumdan atar. Resmi degerlerle hem oturum hem guncelleme uyumlulugu korunur.
+      - name: API kimligini dogrula (degistirme)
         run: |
           set -euo pipefail
-          if [ -z "${TG_API_ID}" || -z "${TG_API_HASH}" ]; then
-            echo "::warning::TG_API_ID/TG_API_HASH secret tanimli degil — resmi genel anahtarlar kullanilacak (APP_ID=4)"
-            exit 0
+          BV=TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+          if ! grep -qE 'APP_ID = 4;' "$BV"; then
+            echo "::error::APP_ID resmi degerden (4) farkli — oturum uyumlulugu bozulur"
+            exit 1
           fi
-          python3 - <<'PY'
-          import os, re, pathlib
-          p = pathlib.Path("TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java")
-          s = p.read_text(encoding="utf-8")
-          s2 = re.sub(r'(public static int APP_ID = )\d+',
-                      lambda m: m.group(1) + os.environ["TG_API_ID"], s)
-          s2 = re.sub(r'(public static String APP_HASH = )"[^"]*"',
-                      lambda m: m.group(1) + '"' + os.environ["TG_API_HASH"] + '"', s2)
-          if s2 == s:
-              print("::warning::BuildVars.java deseni eslesmedi, anahtarlar yazilmadi")
-          else:
-              p.write_text(s2, encoding="utf-8")
-              print("BuildVars.java guncellendi")
-          PY
+          echo "API_ID resmi degerde (4) — oturum uyumlu"
 
       # ABI filtresi app modulunde (TMessagesProj_App/build.gradle) ZATEN tanimli:
       # productFlavors icinde her flavor'da 4 ABI listeleniyor. Yeni ndk{} blogu
@@ -125,7 +109,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sophon-apk-${{ inputs.abi }}
+          name: sophogram-apk-${{ inputs.abi }}
           path: |
             TMessagesProj_App/build/outputs/apk/**/*.apk
           if-no-files-found: error
