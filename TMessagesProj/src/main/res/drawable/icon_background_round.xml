@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Sophon: adaptive ikon arka plani. Duz siyah; logonun siyah zemini
-     korundugu icin foreground ile birlestiginde orijinal gorunum birebir
-     ayni olur. Adaptive ikon sistemi maskeyi kendisi uygular, bu yuzden
-     burada clip/katman gerekmez. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="#FF000000" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/icon_background_sa" />
+    <item android:drawable="@mipmap/icon_background_clip_round" />
+</layer-list>
