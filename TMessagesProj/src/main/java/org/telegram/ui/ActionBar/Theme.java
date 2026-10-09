@@ -4010,63 +4010,6 @@ public class Theme {
         themes.add(themeInfo);
         themesDict.put("Night", themeInfo);
 
-        // ---------------- Sophon temalari (monokrom siyah-beyaz) ----------------
-        // assets/sophon.attheme ve assets/sophon_light.attheme dosyalarini yukler.
-        // Accent id'leri upstream ile uyumlu tutuldu: gunduz icin 99
-        // (DEFALT_THEME_ACCENT_ID), gece icin 9 - createThemes() icindeki
-        // "Default"/"Dark" dallari bu id'leri atiyor.
-        themeInfo = new ThemeInfo();
-        themeInfo.name = "Sophon";
-        themeInfo.assetName = "sophon.attheme";
-        themeInfo.previewBackgroundColor = 0xff0a0a0a;
-        themeInfo.previewInColor = 0xff1a1a1a;
-        themeInfo.previewOutColor = 0xff242424;
-        themeInfo.sortIndex = 0;
-        themeInfo.setAccentColorOptions(
-                new int[]    { 0xffffffff, 0xffb4b4b4, 0xff808080 },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                new int[]    { 0, 9, 1 },
-                null,
-                null,
-                null
-        );
-        sortAccents(themeInfo);
-        themes.add(themeInfo);
-        themesDict.put("Sophon", themeInfo);
-        currentNightTheme = themeInfo;
-
-        themeInfo = new ThemeInfo();
-        themeInfo.name = "Sophon Light";
-        themeInfo.assetName = "sophon_light.attheme";
-        themeInfo.previewBackgroundColor = 0xfffafafa;
-        themeInfo.previewInColor = 0xfff0f0f0;
-        themeInfo.previewOutColor = 0xffe8e8e8;
-        themeInfo.sortIndex = 1;
-        themeInfo.setAccentColorOptions(
-                new int[]    { 0xff000000, 0xff4a4a4a, 0xff8a8a8a },
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                new int[]    { 99, 2, 1 },
-                null,
-                null,
-                null
-        );
-        sortAccents(themeInfo);
-        themes.add(themeInfo);
-        themesDict.put("Sophon Light", themeInfo);
-        currentDayTheme = themeInfo;
-        defaultTheme = themeInfo;
-        // ---------------- Sophon temalari sonu ----------------
-
         String themesString = themeConfig.getString("themes2", null);
 
         int remoteVersion = themeConfig.getInt("remote_version", 0);
@@ -4115,12 +4058,11 @@ public class Theme {
         ThemeInfo applyingTheme = null;
         SharedPreferences preferences = MessagesController.getGlobalMainSettings();
         try {
-            // Sophon: koyu varsayilan tema artik "Dark Blue" degil "Sophon".
-            final ThemeInfo themeDarkBlue = themesDict.get("Sophon");
+            final ThemeInfo themeDarkBlue = themesDict.get("Dark Blue");
 
             String theme = preferences.getString("theme", null);
             if ("Default".equals(theme)) {
-                applyingTheme = themesDict.get("Sophon Light");
+                applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
             } else if ("Dark".equals(theme)) {
                 applyingTheme = themeDarkBlue;
@@ -4136,7 +4078,7 @@ public class Theme {
 
             theme = preferences.getString("nighttheme", null);
             if ("Default".equals(theme)) {
-                applyingTheme = themesDict.get("Sophon Light");
+                applyingTheme = themesDict.get("Blue");
                 applyingTheme.currentAccentId = DEFALT_THEME_ACCENT_ID;
             } else if ("Dark".equals(theme)) {
                 currentNightTheme = themeDarkBlue;
