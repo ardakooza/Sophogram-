@@ -8326,7 +8326,7 @@ public class ChatActivity extends BaseFragment implements
         }
         searchContainer = null;
 
-        bottomOverlay = new GlassFrameLayout(context) {
+        bottomOverlay = new FrameLayout(context) {
             @Override
             public void setVisibility(int visibility) {
                 super.setVisibility(visibility);
@@ -9616,7 +9616,7 @@ public class ChatActivity extends BaseFragment implements
             return;
         }
 
-        topChatPanelView = new GlassFrameLayout(getContext()) {
+        topChatPanelView = new FrameLayout(getContext()) {
 
             private boolean ignoreLayout;
 
